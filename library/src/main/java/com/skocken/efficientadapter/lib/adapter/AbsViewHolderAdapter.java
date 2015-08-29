@@ -1,14 +1,12 @@
 package com.skocken.efficientadapter.lib.adapter;
 
+import com.skocken.efficientadapter.lib.util.AdapterUtil;
 import com.skocken.efficientadapter.lib.viewholder.AbsViewHolder;
 
 import android.support.v7.widget.RecyclerView;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -385,8 +383,7 @@ public abstract class AbsViewHolderAdapter<T> extends RecyclerView.Adapter<AbsVi
      * Generate a view to be used into the view holder
      */
     protected View generateView(ViewGroup parent, int viewType) {
-        return LayoutInflater.from(parent.getContext())
-                .inflate(getLayoutResId(viewType), parent, false);
+        return AdapterUtil.generateView(parent, getLayoutResId(viewType));
     }
 
     /**
@@ -399,43 +396,7 @@ public abstract class AbsViewHolderAdapter<T> extends RecyclerView.Adapter<AbsVi
                     "You must supply a view holder class for the element for view type "
                             + viewType);
         }
-        Constructor<?> constructorWithView = getConstructorWithView(viewHolderClass);
-        try {
-            Object viewHolder = constructorWithView.newInstance(v);
-            return (AbsViewHolder) viewHolder;
-        } catch (InvocationTargetException e) {
-            throw new RuntimeException(
-                    "Impossible to instantiate "
-                            + viewHolderClass.getSimpleName(), e);
-        } catch (InstantiationException e) {
-            throw new RuntimeException(
-                    "Impossible to instantiate "
-                            + viewHolderClass.getSimpleName(), e);
-        } catch (IllegalAccessException e) {
-            throw new RuntimeException(
-                    "Impossible to instantiate "
-                            + viewHolderClass.getSimpleName(), e);
-        }
-    }
-
-    /**
-     * Get the constructor with a view for this class
-     */
-    private Constructor<?> getConstructorWithView(Class<? extends AbsViewHolder> viewHolderClass) {
-        Constructor<?>[] constructors = viewHolderClass.getDeclaredConstructors();
-        if (constructors != null) {
-            for (Constructor<?> constructor : constructors) {
-                Class<?>[] parameterTypes = constructor.getParameterTypes();
-                if (parameterTypes != null
-                        && parameterTypes.length == 1
-                        && parameterTypes[0].isAssignableFrom(View.class)) {
-                    return constructor;
-                }
-            }
-        }
-        throw new RuntimeException(
-                "Impossible to found a constructor with a view for "
-                        + viewHolderClass.getSimpleName());
+        return AdapterUtil.generateViewHolder(v, viewHolderClass);
     }
 
     private void onClickItem(AbsViewHolder viewHolder, int position) {
